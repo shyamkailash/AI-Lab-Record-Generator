@@ -1,4 +1,5 @@
 import os
+
 from django.conf import settings
 from django.core.files.storage import default_storage
 
@@ -7,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
+from .models import LabReport
 from .services.ollama_service import generate_lab_record
 from .services.ocr_service import extract_text_from_image
 
@@ -36,9 +38,18 @@ class GenerateLabRecordView(APIView):
                 code_text=code_text
             )
 
+            report = LabReport.objects.create(
+                experiment_name=experiment_name,
+                subject=subject,
+                language=language,
+                extracted_output=output_text,
+                lab_record=lab_record
+            )
+
             return Response(
                 {
-                    "message": "Lab record generated successfully",
+                    "message": "Lab record generated and saved successfully",
+                    "report_id": report.id,
                     "experiment_name": experiment_name,
                     "subject": subject,
                     "language": language,
@@ -90,11 +101,21 @@ class GenerateLabRecordFromImageView(APIView):
                 code_text=code_text
             )
 
+            report = LabReport.objects.create(
+                experiment_name=experiment_name,
+                subject=subject,
+                language=language,
+                image=saved_path,
+                extracted_output=extracted_output,
+                lab_record=lab_record
+            )
+
             image_url = request.build_absolute_uri(settings.MEDIA_URL + saved_path)
 
             return Response(
                 {
-                    "message": "Lab record generated from image successfully",
+                    "message": "Lab record generated from image and saved successfully",
+                    "report_id": report.id,
                     "experiment_name": experiment_name,
                     "subject": subject,
                     "language": language,
