@@ -13,35 +13,50 @@ def generate_lab_record(
     code_text=""
 ):
     prompt = f"""
-You are an academic lab record generator for engineering students.
+You are a college lab record generator.
 
-Generate a lab record in this exact format:
+Generate the lab record using EXACTLY this format:
 
 Aim:
-Procedure:
-Program or Theory:
-Output:
-Result:
+Write one clear aim for the experiment.
 
-Details:
+Procedure:
+Write 4 to 6 simple numbered steps.
+
+Program or Theory:
+If code is given, write the exact code.
+If code is not given, write short theory.
+
+Output:
+Write only the given output text.
+
+Result:
+Write one simple result sentence.
+
+Input Details:
 Experiment Name: {experiment_name}
 Subject: {subject}
 Programming Language: {language}
-Output Text: {output_text}
+OCR Output Text: {output_text}
 Code: {code_text}
 
-Rules:
-- Use simple academic English.
-- Suitable for college lab record.
-- Keep content clear and short.
-- Follow the exact section headings.
-- Do not add extra explanation outside the sections.
+Strict Rules:
+Do not use markdown.
+Do not use ###.
+Do not use **.
+Do not use ``` code blocks.
+Do not add extra headings.
+Do not explain the rules.
+Start directly with Aim:
 """
 
     payload = {
         "model": MODEL_NAME,
         "prompt": prompt,
-        "stream": False
+        "stream": False,
+        "options": {
+            "temperature": 0.2
+        }
     }
 
     response = requests.post(OLLAMA_URL, json=payload, timeout=120)
@@ -50,4 +65,4 @@ Rules:
         raise Exception(f"Ollama error: {response.text}")
 
     data = response.json()
-    return data.get("response", "")
+    return data.get("response", "").strip()
